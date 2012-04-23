@@ -97,7 +97,8 @@ PRODUCT_PACKAGES += \
         libaudioutils \
 	libinvensense_mpl \
         blobpack_tf \
-        AutoParts
+        AutoParts \
+	mischelp
 
 # Propertys spacific for this device
 PRODUCT_PROPERTY_OVERRIDES := \
