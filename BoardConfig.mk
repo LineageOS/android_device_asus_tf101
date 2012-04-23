@@ -77,7 +77,17 @@ BOARD_SYSTEMIMAGE_PARTITION_SIZE := 527433728
 BOARD_USERDATAIMAGE_PARTITION_SIZE := 29850022707
 BOARD_FLASH_BLOCK_SIZE := 4096
 
-# prebuilt Kernel
+# Try to build the kernel
+TARGET_KERNEL_CONFIG := cyanogen_tf201_defconfig
+TARGET_KERNEL_SOURCE := kernel/asus/tf101
+
+# Copy BCMDHD Module
+TF201_MODULES:
+       mv kernel/asus/tf101/drivers/net/wireless/bcmdhd/bcmdhd.ko $(KERNEL_MODULES_OUT)
+
+TARGET_KERNEL_MODULES := TIWLAN_MODULES
+
+# Prebuilt Kernel Fallback
 TARGET_PREBUILT_KERNEL := device/asus/tf101/kernel
 
 # Coustom Tools
