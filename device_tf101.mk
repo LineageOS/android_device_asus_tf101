@@ -110,10 +110,9 @@ PRODUCT_PACKAGES += \
         tinymix \
         tinyplay \
         tinyrec \
-        audio.primary.ventana
-#        AutoParts \
-#	com.cyanogenmod.asusec \
-#	libasusec_jni \
+        audio.primary.ventana \
+	com.cyanogenmod.asusec \
+	libasusec_jni
 
 # Propertys spacific for this device
 PRODUCT_PROPERTY_OVERRIDES := \
