@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "AAAAa3///c8\u003d",
+        "filename": "ramdisk/init.ventana.rc",
+        "patchSetId": 1
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 4557
+      },
+      "writtenOn": "2012-11-06T03:22:38Z",
+      "side": 0,
+      "message": "The old script is referring to a file that doesn\u0027t exist.  The correct string should be /dev/block/platform/sdhci-tegra.3/by-name/MSC.  It is missing the \"S\", which refers to /dev/block/mmcblk0p3.  Both ways of changing it would result in the same result.",
+      "revId": "865849f93cec0729a9ac1c460febf9d487b86395",
+      "serverId": "1ec6b3db-b2c1-4fa4-84a2-4c7efe89ba71",
+      "unresolved": false
+    }
+  ]
+}
