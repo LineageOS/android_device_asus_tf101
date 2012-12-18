@@ -29,6 +29,7 @@ TARGET_BOOTLOADER_BOARD_NAME := ventana
 
 # Target arch settings
 TARGET_NO_BOOTLOADER := true
+TARGET_ARCH := arm
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
 TARGET_ARCH_VARIANT := armv7-a
@@ -90,10 +91,9 @@ TARGET_KERNEL_CONFIG := cyanogen_tf101_defconfig
 # Prebuilt Kernel Fallback
 TARGET_PREBUILT_KERNEL := device/asus/tf101/kernel
 
-# Coustom Tools
-TARGET_RELEASETOOL_OTA_FROM_TARGET_SCRIPT := device/asus/tf101/releasetools/tf101_ota_from_target_files
-
 # Recovery Options
+BOARD_CUSTOM_BOOTIMG_MK := device/asus/tf101/releasetools/blob.mk
+TARGET_RELEASETOOLS_EXTENSIONS := device/asus/tf101/releasetools
 BOARD_CUSTOM_BOOTIMG_MK := device/asus/tf101/recovery/recovery.mk
 BOARD_HAS_NO_MISC_PARTITION := true
 BOARD_HAS_NO_SELECT_BUTTON := true
