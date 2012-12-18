@@ -107,9 +107,7 @@ PRODUCT_PACKAGES += \
         libaudioutils \
         tinymix \
         tinyplay \
-        tinyrec \
-	com.cyanogenmod.asusec \
-	libasusec_jni
+        tinyrec
 
 # Propertys spacific for this device
 PRODUCT_PROPERTY_OVERRIDES := \
