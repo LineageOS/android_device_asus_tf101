@@ -53,9 +53,9 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/idc/atmel-maxtouch.idc:system/usr/idc/atmel-maxtouch.idc \
     $(LOCAL_PATH)/idc/elantech_touchscreen.idc:system/usr/idc/elantech_touchscreen.idc \
     $(LOCAL_PATH)/idc/panjit_touch.idc:system/usr/idc/panjit_touch.idc \
-    $(LOCAL_PATH)/keychars/asusec.kcm:system/usr/keychars/asusec.kcm \
-    $(LOCAL_PATH)/keylayout/asusec.kl:system/usr/keylayout/asusec.kl \
     $(LOCAL_PATH)/keylayout/gpio-keys.kl:system/usr/keylayout/gpio-keys.kl
+#    $(LOCAL_PATH)/keychars/asusec.kcm:system/usr/keychars/asusec.kcm \
+#    $(LOCAL_PATH)/keylayout/asusec.kl:system/usr/keylayout/asusec.kl \
 
 # Localized input keychars and keylayout files
 $(call inherit-product, $(LOCAL_PATH)/keychars/l10n/l10n.mk)
@@ -110,9 +110,9 @@ PRODUCT_PACKAGES += \
         tinymix \
         tinyplay \
         tinyrec \
-        audio.primary.ventana \
-	com.cyanogenmod.asusec \
-	libasusec_jni
+        audio.primary.ventana
+#	com.cyanogenmod.asusec \
+#	libasusec_jni
 
 # Propertys spacific for this device
 PRODUCT_PROPERTY_OVERRIDES := \
