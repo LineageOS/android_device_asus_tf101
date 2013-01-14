@@ -1,3 +1,5 @@
 #
 # system.prop for tf101
 #
+ro.carrier=wifi-only
+ro.sf.lcd_density=160
