@@ -214,4 +214,7 @@
 
     <integer name="config_cursorWindowSize">2048</integer
 
+    <!--  Maximum number of supported users -->
+    <integer name="config_multiuserMaximumUsers">8</integer>
+
 </resources>
