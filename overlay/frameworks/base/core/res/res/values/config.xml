@@ -222,4 +222,6 @@
     <!-- Name of that key handler class -->
     <string name="config_deviceKeyHandlerClass" translatable="false">com.cyanogenmod.asusec.KeyHandler</string>
 
+     <!-- Asus Dock Compatiblity should be enabled -->
+    <bool name="config_hasDockBattery">true</bool>
 </resources>
