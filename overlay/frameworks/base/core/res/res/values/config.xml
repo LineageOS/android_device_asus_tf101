@@ -214,4 +214,6 @@
 
     <integer name="config_cursorWindowSize">2048</integer
 
+    <!-- Asus Dock Compatiblity should be enabled -->
+    <bool name="config_hasDockBattery">true</bool>
 </resources>
