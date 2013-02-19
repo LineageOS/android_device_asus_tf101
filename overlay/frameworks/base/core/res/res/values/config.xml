@@ -81,12 +81,6 @@
     <!-- Boolean indicating whether the wifi chipset has background scan support -->
     <bool translatable="false" name="config_wifi_background_scan_support">true</bool>
 
-    <!-- Package name providing network location support. -->
-    <string name="config_networkLocationProviderPackageName" translatable="false">com.google.android.location</string>
-
-    <!-- Package name providing geocoder API support. -->
-    <string name="config_geocodeProviderPackageName" translatable="false">com.google.android.location</string>
-
     <!-- List of file paths for USB host busses to exclude from USB host support.
          For example, if the first USB bus on the device is used to communicate
          with the modem or some other restricted hardware, add "/dev/bus/usb/001/"
@@ -100,6 +94,31 @@
     <!-- Flag indicating whether the we should enable the automatic brightness in Settings.
          Software implementation will be used if config_hardware_auto_brightness_available is not set -->
     <bool name="config_automatic_brightness_available">true</bool>
+
+    <!-- Enable lockscreen rotation -->
+    <bool name="config_enableLockScreenRotation">true</bool>
+
+    <!-- If true, the screen can be rotated via the accelerometer in all 4
+         rotations as the default behavior. -->
+    <bool name="config_allowAllRotations">true</bool>
+
+    <!-- The number of degrees to rotate the display when the keyboard is open. -->
+    <!-- <integer name="config_lidOpenRotation">0</integer> -->
+
+    <!-- Fix the screen_off profile while lid is closed (0=false, 1=true while lid open, 2=always true)-->
+    <integer name="config_lidKeyboardAccessibility">1</integer>
+
+    <!-- Define NavBar access when lid is closed (0=false, 1=true while lid open, 2=always true)-->
+    <integer name="config_lidNavigationAccessibility">1</integer>
+
+    <!-- Fix lid while sleeping -->
+    <bool name="config_lidControlsSleep">true</bool>
+
+    <!-- Touchpad inbound -->
+    <!--bool name="config_hasTouchpad">true</bool -->
+
+    <!-- Disable CRT-OFF animation -->
+    <!--bool name="config_screenOffAnimation">false</bool -->
 
     <!-- Array of light sensor LUX values to define our levels for auto backlight brightness support.
          The N entries of this array define N  1 zones as follows:
@@ -158,7 +177,7 @@
     </integer-array>
 
     <!-- Minimum screen brightness allowed by the power manager. -->
-    <integer name="config_screenBrightnessDim">30</integer>
+    <integer name="config_screenBrightnessDim">4</integer>
 
     <!-- This device is not "voice capable"; it's data-only. -->
     <bool name="config_voice_capable">false</bool>
@@ -196,15 +215,10 @@
          movement threshold where scrolling should begin.
 
           -->
-    <dimen name="config_viewConfigurationTouchSlop">12dp</dimen>
+    <dimen name="config_viewConfigurationTouchSlop">8dp</dimen>
 
     <!-- Separate software navigation bar required on this device. -->
     <bool name="config_showNavigationBar">true</bool>
-
-    <!-- Indicate whether closing the lid causes the device to go to sleep and opening
-         it causes the device to wake up.
-         The default is false. -->
-    <bool name="config_lidControlsSleep">false</bool>
 
     <!-- If this is true, the screen will come on when you unplug usb/power/whatever. -->
     <bool name="config_unplugTurnsOnScreen">true</bool>
@@ -212,14 +226,6 @@
     <!-- The attenuation in dB applied to the lock/unlock sounds. -->
     <integer name="config_lockSoundVolumeDb">0</integer>
 
-    <integer name="config_lidOpenRotation">0</integer>
-
-    <integer name="config_lidKeyboardAccessibility">2</integer>
-
-    <!-- Path to the library that contains a device specific key handler -->
-    <string name="config_deviceKeyHandlerLib" translatable="false">/system/framework/com.cyanogenmod.asusec.jar</string>
-
-    <!-- Name of that key handler class -->
-    <string name="config_deviceKeyHandlerClass" translatable="false">com.cyanogenmod.asusec.KeyHandler</string>
-
+    <!--  Maximum number of supported users -->
+    <integer name="config_multiuserMaximumUsers">8</integer>
 </resources>

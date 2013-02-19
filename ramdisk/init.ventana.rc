@@ -1,15 +1,22 @@
 import init.ventana.usb.rc
-import init.ventana.keyboard.rc
 
 on early-init
     mount debugfs debugfs /sys/kernel/debug
 
-    export EXTERNAL_STORAGE /storage/sdcard0
+on init
+    mkdir /mnt/shell/emulated 0700 shell shell
+    mkdir /storage 0550 system sdcard_r
+    mkdir /storage/emulated 0555 root root
+    export EXTERNAL_STORAGE /storage/emulated/legacy
     export SECONDARY_STORAGE /storage/sdcard1
-    mkdir /storage 0050 system sdcard_r
-    mkdir /storage/sdcard0 0000 system system
-    symlink /storage/sdcard0 /sdcard
-    symlink /storage/sdcard0 /mnt/sdcard
+    export EMULATED_STORAGE_SOURCE /mnt/shell/emulated
+    export EMULATED_STORAGE_TARGET /storage/emulated
+
+    # for backwards compatibility
+    symlink /storage/emulated/legacy /sdcard	
+    symlink /storage/emulated/legacy /mnt/sdcard	
+    symlink /storage/emulated/legacy /storage/sdcard0
+    symlink /mnt/shell/emulated/0 /storage/emulated/legacy
 
     # make the pathes for the external media mounts
     mkdir /storage/sdcard1 0000 system system
@@ -17,10 +24,19 @@ on early-init
     mkdir /storage/usbdisk0 0000 system system
     mkdir /storage/usbdisk1 0000 system system
 
+    symlink /storage/sdcard1 /extSdCard
+    symlink /storage/sdcard1 /mnt/extSdCard
+
 on fs
     setprop ro.crypto.tmpfs_options size=128m,mode=0771,uid=1000,gid=1000
     setprop ro.crypto.umount_sd false
     mount_all /fstab.ventana
+
+# create virtual SD card at /mnt/sdcard, based on the /data/media directory
+# deamon will drop to user/group system/media_rw after initializing
+# underlying files in /data/media wil be created with user and group media_rw (1023)
+service sdcard /system/bin/sdcard /data/media /mnt/shell/emulated 1023 1023
+    class late_start
 
 on post-fs-data
     mkdir /data/misc/wifi 0770 wifi wifi
@@ -31,7 +47,7 @@ on post-fs-data
     mkdir /data/misc/wminput 0776 system system
 
     # we will remap this as /mnt/sdcard with the sdcard fuse tool
-    mkdir /data/media 0775 media_rw media_rw
+    mkdir /data/media 0770 media_rw media_rw
     chown media_rw media_rw /data/media
 
     # Set indication (checked by vold) that we have finished this action
@@ -71,11 +87,11 @@ on boot
 
 
 # Power management settings
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 216000
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 1000000
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq 312000
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq 1200000
     write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor interactive
-    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq 216000
-    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq 1000000
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq 312000
+    write /sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq 1200000
     write /sys/devices/system/cpu/cpu1/cpufreq/scaling_governor interactive
     write /sys/devices/system/cpu/cpufreq/interactive/go_maxspeed_load 80
     write /sys/module/cpuidle/parameters/lp2_in_idle 1
@@ -108,8 +124,8 @@ on boot
     chmod 0664 /sys/class/gpio/gpio203/value
 
 #NTFS exFAT support
-    insmod /sbin/tntfs.ko
-    insmod /sbin/texfat.ko
+#    insmod /sbin/tntfs.ko
+#    insmod /sbin/texfat.ko
 
 # RIL
 # Define TCP buffer sizes for hspa networks
@@ -192,12 +208,6 @@ service iprenew_bnep0 /system/bin/dhcpcd -n
     oneshot
 #Sensor load calibration files end
 
-# create virtual SD card at /mnt/sdcard, based on the /data/media directory
-# deamon will drop to user/group system/media_rw after initializing
-# underlying files in /data/media wil be created with user and group media_rw (1023)
-service sdcard /system/bin/sdcard /data/media 1023 1023
-    class late_start
-
 # bugreport is triggered by the VOLUME-DOWN and VOLUME-UP keys
 service bugreport /system/bin/dumpstate -d -v -o /data/storage/bugreports/bugreport
     class main
@@ -216,9 +226,9 @@ service hciattach /system/bin/brcm_patchram_plus --enable_hci --scopcm=0,2,0,0,0
 # Start GPS daemon
   on boot
   service gps-daemon /system/bin/glgps -c /system/etc/gps/gpsconfig.xml
+  socket gps seqpacket 660 gps system
   user gps
-  socket gps seqpacket 0666 gps system
-  group system 
+  group system inet 
   class late_start
 
 # Mount usb drives as /usbdrive. Generally usb drives are formatted with FAT
@@ -265,7 +275,3 @@ service ps3service /system/bin/ps3service
     group root
     disabled
     oneshot
-
-# bcmdhd module load
-insmod /system/lib/modules/bcmdhd.ko
-

@@ -15,7 +15,7 @@
  */
 
 #define LOG_TAG "audio_hw_primary"
-/*#define LOG_NDEBUG 0*/
+#define LOG_NDEBUG 0
 
 #include <errno.h>
 #include <pthread.h>
@@ -42,6 +42,7 @@
 
 #define PCM_CARD 0
 #define PCM_DEVICE 0
+#define PCM_DEVICE_HDMI 1
 #define PCM_DEVICE_SCO 2
 
 #define OUT_PERIOD_SIZE 1024
@@ -114,7 +115,7 @@ struct audio_device {
     struct audio_hw_device hw_device;
 
     pthread_mutex_t lock; /* see note below on mutex acquisition order */
-    unsigned int devices;
+    int devices;
     bool standby;
     bool mic_mute;
     struct audio_route *ar;
@@ -189,78 +190,114 @@ static void release_buffer(struct resampler_buffer_provider *buffer_provider,
 
 /* Helper functions */
 
-static void select_devices(struct audio_device *adev)
+static void switch_recording_mode(int mode)
 {
-    int headphone_on;
-    int speaker_on;
-    int main_mic_on;
     int fm34_dev, wm8903_dev;
-
     fm34_dev = open(DSP_DEV_PATH,0);
-
     wm8903_dev = open(AUDIO_DEV_PATH,0);
 
-    if (fm34_dev < 0)
-        ALOGE("open %s failed", DSP_DEV_PATH);
-
-    if (wm8903_dev < 0)
-        ALOGE("open %s failed", AUDIO_DEV_PATH);
-
-    headphone_on = adev->devices & (AUDIO_DEVICE_OUT_WIRED_HEADSET |
-                                    AUDIO_DEVICE_OUT_WIRED_HEADPHONE);
-    speaker_on = adev->devices & AUDIO_DEVICE_OUT_SPEAKER;
-    main_mic_on = adev->devices & AUDIO_DEVICE_IN_BUILTIN_MIC;
-
-    reset_mixer_state(adev->ar);
+    if (fm34_dev < 0) ALOGE("open %s failed", DSP_DEV_PATH);
+    if (wm8903_dev < 0) ALOGE("open %s failed", AUDIO_DEV_PATH);
 
     if (wm8903_dev > 0 && fm34_dev > 0){
-        if (speaker_on || headphone_on){
-            if (isRecording){
-                ioctl(fm34_dev, DSP_CONTROL, END_RECORDING);
-                ioctl(wm8903_dev, AUDIO_CAPTURE_MODE, OUTPUT_SOURCE_NORMAL);
-                isRecording = false;
-            }
-            ioctl(fm34_dev, DSP_CONTROL, PLAYBACK);
-        }
+       	ioctl(fm34_dev, DSP_CONTROL, mode);
+	switch (mode) {
+		case START_RECORDING:
+       		        ALOGD("start recording");
+       		        isRecording = true;
+	                ioctl(wm8903_dev, AUDIO_CAPTURE_MODE, INPUT_SOURCE_NORMAL);
+		break;
 
-        if (main_mic_on) {
-            if (!isRecording) {
-                isRecording = true;
-                ioctl(fm34_dev, DSP_CONTROL, START_RECORDING);
-                ioctl(wm8903_dev, AUDIO_CAPTURE_MODE, INPUT_SOURCE_NORMAL);
-            }
-        }
+		case END_RECORDING:
+	       		ALOGD("end recording");
+               		ioctl(wm8903_dev, AUDIO_CAPTURE_MODE, OUTPUT_SOURCE_NORMAL);
+               		isRecording = false;
+		break;
+
+		case PLAYBACK:
+	       		ALOGD("playback");
+		break;
+	}
     }
-
-    if (speaker_on)
-        audio_route_apply_path(adev->ar, "speaker");
-    if (headphone_on)
-        audio_route_apply_path(adev->ar, "headphone");
-    if (main_mic_on) {
-        if (adev->orientation == ORIENTATION_LANDSCAPE)
-            audio_route_apply_path(adev->ar, "main-mic-left");
-        else
-            audio_route_apply_path(adev->ar, "main-mic-top");
-    }
-
-    update_mixer_state(adev->ar);
-
-    ALOGV("hp=%c speaker=%c main-mic=%c", headphone_on ? 'y' : 'n',
-          speaker_on ? 'y' : 'n', main_mic_on ? 'y' : 'n');
 
     if(fm34_dev > 0)
         close(fm34_dev);
 
     if(wm8903_dev > 0)
         close(wm8903_dev);
+
 }
+
+
+static void select_devices(bool in, bool out, struct audio_device *adev)
+{
+    ALOGD("select_devices+ in=%d, out=%d", in, out);
+    int headphone_on;
+    int speaker_on;
+    int hdmi_on;
+    int main_mic_on;
+    int headset_mic_on;
+
+    ALOGV("devices=%d active_out=%c active_in=%c", adev->devices, adev->active_out!=NULL?'y':'n', adev->active_in!=NULL?'y':'n');
+
+    reset_mixer_state(adev->ar);
+
+  if(out) {
+    headphone_on = adev->devices & (AUDIO_DEVICE_OUT_WIRED_HEADSET | AUDIO_DEVICE_OUT_WIRED_HEADPHONE);
+    speaker_on = adev->devices & AUDIO_DEVICE_OUT_SPEAKER;
+    hdmi_on = adev->devices & AUDIO_DEVICE_OUT_AUX_DIGITAL;
+    ALOGV("headphone=%d speaker=%d hdmi=%d isRecording=%d", headphone_on , speaker_on , hdmi_on , isRecording );
+
+    if (speaker_on || headphone_on || hdmi_on) { 
+	if(isRecording)
+		switch_recording_mode(END_RECORDING);
+	switch_recording_mode(PLAYBACK);
+    }
+    if (speaker_on)
+        audio_route_apply_path(adev->ar, "speaker");
+    if (headphone_on)
+        audio_route_apply_path(adev->ar, "headphone");
+    if (hdmi_on)
+        audio_route_apply_path(adev->ar, "hdmi");
+  }
+
+  if(in) {
+    main_mic_on = adev->devices & AUDIO_DEVICE_IN_BUILTIN_MIC;
+    headset_mic_on = adev->devices & AUDIO_DEVICE_IN_WIRED_HEADSET;
+    ALOGV("main-mic=%d, headset_mic_on=%d, isRecording=%d", main_mic_on , headset_mic_on , isRecording );
+
+	//save_mixer_state(adev->ar);
+    if (main_mic_on && !isRecording) 
+	switch_recording_mode(START_RECORDING);
+
+    if(headset_mic_on)
+            audio_route_apply_path(adev->ar, "headset-mic");
+    else
+    if (main_mic_on) {
+        if (adev->orientation == ORIENTATION_LANDSCAPE)
+            audio_route_apply_path(adev->ar, "main-mic-left");
+        else
+            audio_route_apply_path(adev->ar, "main-mic-top");
+    }
+  }
+
+    update_mixer_state(adev->ar);
+
+    ALOGD("select_devices-");
+}
+
+static void select_devices_in(struct audio_device *adev) { select_devices(true, false, adev); }
+static void select_devices_out(struct audio_device *adev) { select_devices(false, true, adev); }
 
 /* must be called with hw device and output stream mutexes locked */
 static void do_out_standby(struct stream_out *out)
 {
+    ALOGV("do_out_standby+");
+
     struct audio_device *adev = out->dev;
 
     if (!out->standby) {
+    	ALOGD("do_out_standby++");
         pcm_close(out->pcm);
         out->pcm = NULL;
         adev->active_out = NULL;
@@ -274,6 +311,7 @@ static void do_out_standby(struct stream_out *out)
         }
         out->standby = true;
     }
+    ALOGV("do_out_standby-");
 }
 
 /* must be called with hw device and input stream mutexes locked */
@@ -281,7 +319,10 @@ static void do_in_standby(struct stream_in *in)
 {
     struct audio_device *adev = in->dev;
 
+    ALOGV("do_in_standby+");
+
     if (!in->standby) {
+    	ALOGD("do_in_standby++");
         pcm_close(in->pcm);
         in->pcm = NULL;
         adev->active_in = NULL;
@@ -295,13 +336,14 @@ static void do_in_standby(struct stream_in *in)
         }
         in->standby = true;
     }
+    ALOGV("do_in_standby-");
 }
 
 /* must be called with hw device and output stream mutexes locked */
 static int start_output_stream(struct stream_out *out)
 {
     struct audio_device *adev = out->dev;
-    unsigned int device;
+    int device;
     int ret;
 
     /*
@@ -310,6 +352,10 @@ static int start_output_stream(struct stream_out *out)
      * (speaker/headphone) PCM or the BC SCO PCM open at
      * the same time.
      */
+    if(adev->devices & AUDIO_DEVICE_OUT_AUX_DIGITAL) {
+        device = PCM_DEVICE_HDMI;
+        out->pcm_config = &pcm_config_out;
+    } else
     if (adev->devices & AUDIO_DEVICE_OUT_ALL_SCO) {
         device = PCM_DEVICE_SCO;
         out->pcm_config = &pcm_config_sco;
@@ -318,6 +364,9 @@ static int start_output_stream(struct stream_out *out)
         out->pcm_config = &pcm_config_out;
         out->buffer_type = OUT_BUFFER_TYPE_UNKNOWN;
     }
+
+	if(isRecording)
+		switch_recording_mode(END_RECORDING);
 
     /*
      * All open PCMs can only use a single group of rates at once:
@@ -335,6 +384,8 @@ static int start_output_stream(struct stream_out *out)
             do_in_standby(adev->active_in);
         pthread_mutex_unlock(&adev->active_in->lock);
     }
+
+    ALOGD("outpcm open: card=%d, device=%d, rate=%d", PCM_CARD, device, out->pcm_config->rate);
 
     out->pcm = pcm_open(PCM_CARD, device, PCM_OUT | PCM_NORESTART, out->pcm_config);
 
@@ -586,12 +637,13 @@ static int out_dump(const struct audio_stream *stream, int fd)
 
 static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
 {
+ALOGD("out_set_parameters:%s", kvpairs);
     struct stream_out *out = (struct stream_out *)stream;
     struct audio_device *adev = out->dev;
     struct str_parms *parms;
     char value[32];
     int ret;
-    unsigned int val;
+    int val;
 
     parms = str_parms_create_str(kvpairs);
 
@@ -602,11 +654,11 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
         val = atoi(value);
         if (((adev->devices & AUDIO_DEVICE_OUT_ALL) != val) && (val != 0)) {
             /*
-             * If SCO is turned on/off, we need to put audio into standby
-             * because SCO uses a different PCM.
+             * If SCO or HDMI is turned on/off, we need to put audio into standby
+             * because they use a different PCM PORT.
              */
-            if ((val & AUDIO_DEVICE_OUT_ALL_SCO) ^
-                    (adev->devices & AUDIO_DEVICE_OUT_ALL_SCO)) {
+            if ( (val & AUDIO_DEVICE_OUT_ALL_SCO) ^ (adev->devices & AUDIO_DEVICE_OUT_ALL_SCO)
+		|| (val & AUDIO_DEVICE_OUT_AUX_DIGITAL) ^ (adev->devices & AUDIO_DEVICE_OUT_AUX_DIGITAL)) {
                 pthread_mutex_lock(&out->lock);
                 do_out_standby(out);
                 pthread_mutex_unlock(&out->lock);
@@ -614,7 +666,7 @@ static int out_set_parameters(struct audio_stream *stream, const char *kvpairs)
 
             adev->devices &= ~AUDIO_DEVICE_OUT_ALL;
             adev->devices |= val;
-            select_devices(adev);
+            select_devices_out(adev);
         }
     }
     pthread_mutex_unlock(&adev->lock);
@@ -891,20 +943,23 @@ static int in_dump(const struct audio_stream *stream, int fd)
 
 static int in_set_parameters(struct audio_stream *stream, const char *kvpairs)
 {
+ALOGD("in_set_parameters:%s", kvpairs);
     struct stream_in *in = (struct stream_in *)stream;
     struct audio_device *adev = in->dev;
     struct str_parms *parms;
     char value[32];
-    int ret;
-    unsigned int val;
+    int ret,ret_input;
+    int val;
 
     parms = str_parms_create_str(kvpairs);
 
-    ret = str_parms_get_str(parms, AUDIO_PARAMETER_STREAM_ROUTING,
-                            value, sizeof(value));
+    ret = str_parms_get_str(parms, AUDIO_PARAMETER_STREAM_ROUTING, value, sizeof(value));
+    //ret = str_parms_get_str(parms, AUDIO_PARAMETER_STREAM_INPUT_SOURCE, value, sizeof(value));
+
     pthread_mutex_lock(&adev->lock);
     if (ret >= 0) {
-        val = atoi(value);
+        val = atoi(value)& ~AUDIO_DEVICE_BIT_IN;
+	ALOGD("in_set_parameters:filtered routing=%d", val);
         if (((adev->devices & AUDIO_DEVICE_IN_ALL) != val) && (val != 0)) {
             /*
              * If SCO is turned on/off, we need to put audio into standby
@@ -919,7 +974,7 @@ static int in_set_parameters(struct audio_stream *stream, const char *kvpairs)
 
             adev->devices &= ~AUDIO_DEVICE_IN_ALL;
             adev->devices |= val;
-            select_devices(adev);
+            select_devices_in(adev);
         }
     }
     pthread_mutex_unlock(&adev->lock);
@@ -1082,6 +1137,7 @@ static void adev_close_output_stream(struct audio_hw_device *dev,
 
 static int adev_set_parameters(struct audio_hw_device *dev, const char *kvpairs)
 {
+ALOGD("adev_set_parameters:%s", kvpairs);
     struct audio_device *adev = (struct audio_device *)dev;
     struct str_parms *parms;
     char *str;
@@ -1112,7 +1168,7 @@ static int adev_set_parameters(struct audio_hw_device *dev, const char *kvpairs)
              * not be called when the input device is opened if no
              * other input parameter is changed.
              */
-            select_devices(adev);
+            select_devices_in(adev);
         }
         pthread_mutex_unlock(&adev->lock);
     }
@@ -1240,10 +1296,15 @@ static int adev_open_input_stream(struct audio_hw_device *dev,
 static void adev_close_input_stream(struct audio_hw_device *dev,
                                    struct audio_stream_in *stream)
 {
+    ALOGV("adev_close_input_stream+");
+    switch_recording_mode(END_RECORDING);
+    switch_recording_mode(PLAYBACK);
+
     struct stream_in *in = (struct stream_in *)stream;
 
     in_standby(&stream->common);
     free(stream);
+    ALOGV("adev_close_input_stream-");
 }
 
 static int adev_dump(const audio_hw_device_t *device, int fd)
@@ -1261,22 +1322,6 @@ static int adev_close(hw_device_t *device)
     return 0;
 }
 
-static uint32_t adev_get_supported_devices(const struct audio_hw_device *dev)
-{
-    return (/* OUT */
-            AUDIO_DEVICE_OUT_SPEAKER |
-            AUDIO_DEVICE_OUT_WIRED_HEADSET |
-            AUDIO_DEVICE_OUT_WIRED_HEADPHONE |
-            AUDIO_DEVICE_OUT_ALL_SCO |
-            AUDIO_DEVICE_OUT_DEFAULT |
-            /* IN */
-            AUDIO_DEVICE_IN_BUILTIN_MIC |
-            AUDIO_DEVICE_IN_WIRED_HEADSET |
-            AUDIO_DEVICE_IN_BACK_MIC |
-            AUDIO_DEVICE_IN_ALL_SCO |
-            AUDIO_DEVICE_IN_DEFAULT);
-}
-
 static int adev_open(const hw_module_t* module, const char* name,
                      hw_device_t** device)
 {
@@ -1291,11 +1336,10 @@ static int adev_open(const hw_module_t* module, const char* name,
         return -ENOMEM;
 
     adev->hw_device.common.tag = HARDWARE_DEVICE_TAG;
-    adev->hw_device.common.version = AUDIO_DEVICE_API_VERSION_1_0;
+    adev->hw_device.common.version = AUDIO_DEVICE_API_VERSION_2_0;
     adev->hw_device.common.module = (struct hw_module_t *) module;
     adev->hw_device.common.close = adev_close;
 
-    adev->hw_device.get_supported_devices = adev_get_supported_devices;
     adev->hw_device.init_check = adev_init_check;
     adev->hw_device.set_voice_volume = adev_set_voice_volume;
     adev->hw_device.set_master_volume = adev_set_master_volume;
@@ -1329,7 +1373,7 @@ struct audio_module HAL_MODULE_INFO_SYM = {
         .module_api_version = AUDIO_MODULE_API_VERSION_0_1,
         .hal_api_version = HARDWARE_HAL_API_VERSION,
         .id = AUDIO_HARDWARE_MODULE_ID,
-        .name = "TF101 audio HW HAL",
+        .name = "tf101 audio HW HAL",
         .author = "The Android Open Source Project",
         .methods = &hal_module_methods,
     },
