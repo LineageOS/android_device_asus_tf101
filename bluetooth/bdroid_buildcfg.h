@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-#ifndef AUDIO_ROUTE_H
-#define AUDIO_ROUTE_H
+#ifndef _BDROID_BUILDCFG_H
+#define _BDROID_BUILDCFG_H
 
-/* Initialises and frees the audio routes */
-struct audio_route *audio_route_init(void);
-void audio_route_free(struct audio_route *ar);
+#define BTM_DEF_LOCAL_NAME "Asus Transformer"
 
-/* Applies an audio route path by name */
-void audio_route_apply_path(struct audio_route *ar, const char *name);
+// Networking, Capturing, Object Transfer
+// MAJOR CLASS: COMPUTER
+// MINOR CLASS: PALM SIZE PC/PDA
+#define BTA_DM_COD {0x1A, 0x01, 0x14}
 
-/* Resets the mixer back to its initial state */
-void reset_mixer_state(struct audio_route *ar);
-
-/* Updates the mixer with any changed values */
-void update_mixer_state(struct audio_route *ar);
+#define BTIF_HF_SERVICES (BTA_HSP_SERVICE_MASK)
+#define BTIF_HF_SERVICE_NAMES  { BTIF_HSAG_SERVICE_NAME }
+#define PAN_NAP_DISABLED TRUE
 
 #endif

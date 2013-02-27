@@ -29,6 +29,7 @@ TARGET_BOOTLOADER_BOARD_NAME := ventana
 
 # Target arch settings
 TARGET_NO_BOOTLOADER := true
+TARGET_ARCH := arm
 TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
 TARGET_ARCH_VARIANT := armv7-a
@@ -43,6 +44,7 @@ BOARD_KERNEL_BASE := 0x10000000
 BOARD_KERNEL_PAGESIZE :=
 
 # EGL settings
+BOARD_EGL_NEEDS_LEGACY_FB := true
 BOARD_EGL_CFG := device/asus/tf101/prebuilt/egl.cfg
 USE_OPENGL_RENDERER := true
 
@@ -53,9 +55,11 @@ BOARD_NO_ALLOW_DEQUEUE_CURRENT_BUFFER := true
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true
 BOARD_HAVE_BLUETOOTH_BCM := true
+BOARD_BLUEDROID_VENDOR_CONF := device/asus/tf101/bluetooth/vnd_tf101.txt
+BOARD_BLUETOOTH_BDROID_BUILDCFG_INCLUDE_DIR ?= device/asus/tf101/bluetooth
 
 #ICS Camera
-COMMON_GLOBAL_CFLAGS += -DICS_CAMERA_BLOB
+COMMON_GLOBAL_CFLAGS += -DICS_CAMERA_BLOB -DICS_AUDIO_BLOB
 
 # Support for dock battery
 TARGET_HAS_DOCK_BATTERY := true
@@ -90,10 +94,9 @@ TARGET_KERNEL_CONFIG := cyanogen_tf101_defconfig
 # Prebuilt Kernel Fallback
 TARGET_PREBUILT_KERNEL := device/asus/tf101/kernel
 
-# Coustom Tools
-TARGET_RELEASETOOL_OTA_FROM_TARGET_SCRIPT := device/asus/tf101/releasetools/tf101_ota_from_target_files
-
 # Recovery Options
+BOARD_CUSTOM_BOOTIMG_MK := device/asus/tf101/releasetools/blob.mk
+TARGET_RELEASETOOLS_EXTENSIONS := device/asus/tf101/releasetools
 BOARD_CUSTOM_BOOTIMG_MK := device/asus/tf101/recovery/recovery.mk
 BOARD_HAS_NO_MISC_PARTITION := true
 BOARD_HAS_NO_SELECT_BUTTON := true
