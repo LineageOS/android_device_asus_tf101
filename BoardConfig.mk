@@ -38,8 +38,8 @@ TARGET_ARCH_VARIANT_FPU := vfpv3-d16
 TARGET_CPU_SMP := true
 ARCH_ARM_HAVE_TLS_REGISTER := true
 
-# Boot/Recovery image settings  
-BOARD_KERNEL_CMDLINE := 
+# Boot/Recovery image settings
+BOARD_KERNEL_CMDLINE :=
 BOARD_KERNEL_BASE := 0x10000000
 BOARD_KERNEL_PAGESIZE :=
 
@@ -89,17 +89,20 @@ BOARD_USES_GENERIC_AUDIO := false
 BOARD_USES_ALSA_AUDIO := false
 
 # Try to build the kernel
+TARGET_KERNEL_SOURCE := kernel/asus/tf101
 TARGET_KERNEL_CONFIG := cyanogen_tf101_defconfig
 
 # Prebuilt Kernel Fallback
-TARGET_PREBUILT_KERNEL := device/asus/tf101/kernel
+#TARGET_PREBUILT_KERNEL := device/asus/tf101/kernel
 
-# Recovery Options
-BOARD_CUSTOM_BOOTIMG_MK := device/asus/tf101/releasetools/blob.mk
-TARGET_RELEASETOOLS_EXTENSIONS := device/asus/tf101/releasetools
-BOARD_CUSTOM_BOOTIMG_MK := device/asus/tf101/recovery/recovery.mk
+# Release Tool
+TARGET_RELEASETOOL_OTA_FROM_TARGET_SCRIPT := device/asus/tf101/releasetools/tf101_ota_from_target_files
+
+# Recovery options
 BOARD_HAS_NO_MISC_PARTITION := true
 BOARD_HAS_NO_SELECT_BUTTON := true
 BOARD_HAS_LARGE_FILESYSTEM := true
-TARGET_RECOVERY_INITRC := device/asus/tf101/recovery/init.rc
 BOARD_HAS_SDCARD_INTERNAL := true
+BOARD_DATA_FILESYSTEM := ext4
+BOARD_SYSTEM_FILESYSTEM := ext4
+BOARD_CACHE_FILESYSTEM := ext4
