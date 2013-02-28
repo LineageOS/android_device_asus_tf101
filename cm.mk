@@ -1,3 +1,7 @@
+# Resolution values for bootanimation
+TARGET_SCREEN_HEIGHT := 800
+TARGET_SCREEN_WIDTH := 1280
+
 # Inherit device configuration for tf101.
 $(call inherit-product, device/asus/tf101/full_tf101.mk)
 
