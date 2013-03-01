@@ -16,7 +16,7 @@ import common
 import os, sys
 
 LOCAL_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-DEV_OUT_DIR = os.path.abspath(os.path.join(LOCAL_DIR, '../../../out/target/product/tf201/'))
+DEV_OUT_DIR = os.path.abspath(os.path.join(LOCAL_DIR, '../../../out/target/product/tf101/'))
 
 def FullOTA_InstallEnd(info):
   blob_path = os.path.join(DEV_OUT_DIR, "boot.img.LNX")
