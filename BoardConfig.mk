@@ -97,7 +97,6 @@ TARGET_PREBUILT_KERNEL := device/asus/tf101/kernel
 # Recovery Options
 BOARD_CUSTOM_BOOTIMG_MK := device/asus/tf101/releasetools/blob.mk
 TARGET_RELEASETOOLS_EXTENSIONS := device/asus/tf101/releasetools
-BOARD_CUSTOM_BOOTIMG_MK := device/asus/tf101/recovery/recovery.mk
 BOARD_HAS_NO_MISC_PARTITION := true
 BOARD_HAS_NO_SELECT_BUTTON := true
 BOARD_HAS_LARGE_FILESYSTEM := true
