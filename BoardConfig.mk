@@ -38,6 +38,9 @@ TARGET_ARCH_VARIANT_FPU := vfpv3-d16
 TARGET_CPU_SMP := true
 ARCH_ARM_HAVE_TLS_REGISTER := true
 
+# Avoid the generation of ldrcc instructions
+NEED_WORKAROUND_CORTEX_A9_745320 := true
+
 # Boot/Recovery image settings  
 BOARD_KERNEL_CMDLINE := 
 BOARD_KERNEL_BASE := 0x10000000
