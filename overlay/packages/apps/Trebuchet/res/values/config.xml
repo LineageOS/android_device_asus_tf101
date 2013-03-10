@@ -1,0 +1,4 @@
+<resources>
+    <bool name="config_largeHeap">true</bool>
+</resources>
+
