@@ -4,6 +4,7 @@
 /dev/tegra_rpc	0660	media	media
 /dev/tegra_sema	0660	media	media
 /dev/tegra_mediaserver	0660	media	media
+/dev/ov5640	0660	media	camera
 /dev/ov5650	0660	media	camera
 /dev/ov2710	0660	media	camera
 /dev/sh532u	0660	media	camera
